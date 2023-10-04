@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -22,7 +20,6 @@ public class GridView extends VerticalLayout {
 	
 	private static final long serialVersionUID = 1L;
 
-	@SuppressWarnings("unlikely-arg-type")
 	public GridView() {
 		/*
 		 * En este caso, cuando se pasa false como segundo parámetro al constructor de Grid, significa que se desactiva la creación automática de columnas.
