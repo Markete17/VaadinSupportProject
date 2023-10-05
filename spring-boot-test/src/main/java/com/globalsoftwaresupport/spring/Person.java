@@ -1,10 +1,23 @@
 package com.globalsoftwaresupport.spring;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+
 public class Person {
 	
+	@NotEmpty(message = "Not empty")
 	private String name;
+	
+	//Opcional
 	private Integer age;
+	
+	@NotEmpty(message = "Not empty")
+	@Email(message = "Must has email format")
 	private String email;
+	
+	public Person() {
+		// init person
+	}
 
 	public Person(String name, Integer age) {
 		super();
@@ -31,11 +44,6 @@ public class Person {
 	 */
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	@Override
-	public String toString() {
-		return "name";
 	}
 
 	/**
@@ -66,4 +74,8 @@ public class Person {
 		this.email = email;
 	}
 	
+	@Override
+	public String toString() {
+		return "Person [name=" + name + ", age=" + age + ", email=" + email + "]";
+	}
 }
