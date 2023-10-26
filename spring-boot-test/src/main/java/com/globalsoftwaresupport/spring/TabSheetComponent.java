@@ -13,11 +13,11 @@ import com.vaadin.flow.component.tabs.Tabs.Orientation;
 
 @Route("/tabsheet")
 @PageTitle("Tabsheet")
-public class TabSheet extends VerticalLayout {
+public class TabSheetComponent extends VerticalLayout {
 
 	private static final long serialVersionUID = -4539536563213301714L;
 	
-	public TabSheet() {
+	public TabSheetComponent() {
 	
 	Tab tab1 = new Tab("Orders");
 	Tab tab2 = new Tab("Payments");
