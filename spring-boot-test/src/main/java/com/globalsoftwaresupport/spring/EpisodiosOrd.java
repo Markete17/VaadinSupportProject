@@ -14,27 +14,38 @@ import lombok.Getter;
 
 public class EpisodiosOrd extends HorizontalLayout {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final String BACKGROUND_COLOR = "#FFF6C0";
-	
-    private final Button fechaButton = new Button("Fecha");
-    private final Button servicioButton = new Button("Servicio");
-    private final Button centroButton = new Button("Centro");
-    // Valor seleccionado
+    private static final long serialVersionUID = 1L;
+
+    private static final String BACKGROUND_COLOR = "#0073e6"; // Azul más claro y oscuro
+    private static final String LIGHT_TEXT_COLOR = "#ffffff"; // Color de texto en fondo oscuro
+    private static final String DARK_TEXT_COLOR = "#000000";  // Color de texto en fondo claro
+
+    private final Button fechaButton = createStyledButton("Fecha");
+    private final Button servicioButton = createStyledButton("Servicio");
+    private final Button centroButton = createStyledButton("Centro");
+
     @Getter
     private Boolean value;
 
     public EpisodiosOrd() {
         super();
         createLayout();
-        clearStyles();
     }
 
     public void clear() {
         clearStyles();
         value = null;
-        //fireEvent(new ValueChangeEvent(this, FilterForm.empty(EpisodiosRestDtoDataProvider.FILTER_MENORES)));
+    }
+
+    private Button createStyledButton(String text) {
+        Button button = new Button(text);
+        button.getStyle().set("background-color", "transparent");
+        button.getStyle().set("color", DARK_TEXT_COLOR); // Texto oscuro por defecto
+        button.getStyle().set("border", "2px solid #ccc"); // Borde más sutil
+        button.getStyle().set("border-radius", "8px");
+        button.getStyle().set("cursor", "pointer"); // Agregar el cursor de puntero
+        button.addClassName("viewIconClickable");
+        return button;
     }
 
     private void createLayout() {
@@ -42,93 +53,53 @@ public class EpisodiosOrd extends HorizontalLayout {
 
         fechaButton.addClickListener(buttonClickEvent -> {
             clearStyles();
-			fechaButton.getStyle().set("color", "black");
-			fechaButton.getStyle().set("background-color", BACKGROUND_COLOR); // Cambia el fondo del botón cuando se selecciona
-            servicioButton.getStyle().set("color", "grey");
-            centroButton.getStyle().set("color", "grey");
-
+            fechaButton.getStyle().set("background-color", BACKGROUND_COLOR);
+            fechaButton.getStyle().set("color", LIGHT_TEXT_COLOR); // Texto claro cuando se selecciona
             value = null;
             //fireEvent(new ValueChangeEvent(this, FilterForm.empty(EpisodiosRestDtoDataProvider.FILTER_MENORES)));
         });
 
         servicioButton.addClickListener(buttonClickEvent -> {
             clearStyles();
-            fechaButton.getStyle().set("color", "grey");
-            servicioButton.getStyle().set("color", "black");
-            servicioButton.getStyle().set("background-color", BACKGROUND_COLOR); // Cambia el fondo del botón cuando se selecciona
-            centroButton.getStyle().set("color", "grey");
-
+            servicioButton.getStyle().set("background-color", BACKGROUND_COLOR);
+            servicioButton.getStyle().set("color", LIGHT_TEXT_COLOR); // Texto claro cuando se selecciona
             value = Boolean.FALSE;
             //fireEvent(new ValueChangeEvent(this, FilterForm.of(EpisodiosRestDtoDataProvider.FILTER_MENORES, value)));
         });
 
         centroButton.addClickListener(buttonClickEvent -> {
             clearStyles();
-            fechaButton.getStyle().set("color", "grey");
-            servicioButton.getStyle().set("color", "grey");
-            centroButton.getStyle().set("color", "black");
-            centroButton.getStyle().set("background-color", BACKGROUND_COLOR); // Cambia el fondo del botón cuando se selecciona
-
+            centroButton.getStyle().set("background-color", BACKGROUND_COLOR);
+            centroButton.getStyle().set("color", LIGHT_TEXT_COLOR); // Texto claro cuando se selecciona
             value = Boolean.TRUE;
             //fireEvent(new ValueChangeEvent(this, FilterForm.of(EpisodiosRestDtoDataProvider.FILTER_MENORES, value)));
         });
-
-        fechaButton.getStyle().set("border", "solid 2px");
-        servicioButton.getStyle().set("border", "solid 2px");
-        centroButton.getStyle().set("border", "solid 2px");
-
-        fechaButton.getStyle().set("border-bottom-left-radius", "8px");
-        fechaButton.getStyle().set("border-top-left-radius", "8px");
-        fechaButton.getStyle().set("border-bottom-right-radius", "0px");
-        fechaButton.getStyle().set("border-top-right-radius", "0px");
-        fechaButton.getStyle().set("border-right-radius", "0px");
-
-        servicioButton.getStyle().set("border-radius", "0px");
-
-        centroButton.getStyle().set("border-bottom-left-radius", "0px");
-        centroButton.getStyle().set("border-top-left-radius", "0px");
-        centroButton.getStyle().set("border-bottom-right-radius", "8px");
-        centroButton.getStyle().set("border-top-right-radius", "8px");
-
-        fechaButton.addClassName("viewIconClickable");
-        servicioButton.addClassName("viewIconClickable");
-        centroButton.addClassName("viewIconClickable");
 
         this.add(fechaButton, servicioButton, centroButton);
     }
 
     private void clearStyles() {
-        fechaButton.getStyle().set("color", "black");
-        servicioButton.getStyle().set("color", "black");
-        centroButton.getStyle().set("color", "black");
-        
-        fechaButton.getStyle().set("background-color", "");
-        servicioButton.getStyle().set("background-color", "");
-        centroButton.getStyle().set("background-color", "");
+        fechaButton.getStyle().set("background-color", "transparent");
+        fechaButton.getStyle().set("color", DARK_TEXT_COLOR); // Restablecer el color de texto
+        servicioButton.getStyle().set("background-color", "transparent");
+        servicioButton.getStyle().set("color", DARK_TEXT_COLOR); // Restablecer el color de texto
+        centroButton.getStyle().set("background-color", "transparent");
+        centroButton.getStyle().set("color", DARK_TEXT_COLOR); // Restablecer el color de texto
     }
 
     public Registration addValueChangeListener(@NonNull final ComponentEventListener<ValueChangeEvent> listener) {
         return addListener(ValueChangeEvent.class, listener);
     }
 
-    /**
-     * Evento de selección de un valor en alguno de los botones del componente.
-     */
     @Getter
     public static class ValueChangeEvent extends ComponentEvent<EpisodiosOrd> {
-        /**
-         * -- GETTER --
-         * Obtiene el filtro seleccionado, nombre y valor.
-         */
-        private final FilterForm filterForm;
+		private static final long serialVersionUID = 1L;
+		private final FilterForm filterForm;
 
         public ValueChangeEvent(@NonNull final EpisodiosOrd source, @NonNull final FilterForm filterForm) {
             super(source, false);
             Objects.requireNonNull(filterForm, "filterForm must not be null");
-
             this.filterForm = filterForm;
         }
-
     }
-
 }
