@@ -1,6 +1,5 @@
 package com.globalsoftwaresupport.spring;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
@@ -12,7 +11,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -25,11 +23,7 @@ public class EpisodiosTabbedAccordion extends VerticalLayout {
 
     private static final long serialVersionUID = 1L;
     private Map<String, List<AccordionPanel>> map = new HashMap<>();
-    private Accordion accordion = new Accordion();
-
     private final String LIGHT_BLUE_COLOR = "#0073e6"; // Azul más claro
-    private final String DARK_BLUE_COLOR = "#000000"; // Color de texto oscuro
-    private final String LIGHT_TEXT_COLOR = "#ffffff"; // Color de texto en fondo oscuro
 
     public EpisodiosTabbedAccordion() {
         createLayout();
@@ -56,7 +50,7 @@ public class EpisodiosTabbedAccordion extends VerticalLayout {
             new AccordionPanel("HOSPITAL SEGOVIA", createDropDownList()),
             new AccordionPanel("HOSPITAL MAITE ROZAS", createDropDownList()),
             new AccordionPanel("HOSPITAL SALAMANCA", createDropDownList()),
-            new AccordionPanel("HOSPITAL SEVERO OCHA", createDropDownList()),
+            new AccordionPanel("HOSPITAL SEVERO OCHOA", createDropDownList()),
             new AccordionPanel("HOSPITAL 12 OCTUBRE", createDropDownList()),
             new AccordionPanel("HOSPITAL JOSEP TRUETA", createDropDownList()),
             new AccordionPanel("HOSPITAL SANTA CATARINA", createDropDownList())
@@ -147,7 +141,7 @@ public class EpisodiosTabbedAccordion extends VerticalLayout {
 
     private Span createBadge(int count) {
         Span badge = new Span(String.valueOf(count));
-        badge.getStyle().set("background-color", LIGHT_BLUE_COLOR); // Usar un tono más claro de azul
+        badge.getStyle().set("background-color", LIGHT_BLUE_COLOR);
         badge.getStyle().set("color", "white");
         badge.getStyle().set("border-radius", "50%");
         badge.getStyle().set("padding", "4px 8px");
