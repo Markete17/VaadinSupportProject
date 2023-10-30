@@ -29,7 +29,7 @@ public class Episodios extends VerticalLayout {
 		Text filterText = new Text("Filtrar por:");
 		Span filterSpan = new Span(filterText);
 		filterSpan.getElement().getStyle().set("margin", "0");
-		
+
 		EpisodiosOrd episodiosOrd = new EpisodiosOrd();
 
 		EpisodiosTabbedAccordion episodiosTabbedAccordion = new EpisodiosTabbedAccordion(episodiosOrd);
