@@ -15,7 +15,6 @@ import com.vaadin.flow.router.Route;
 public class Episodios extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
-	private EpisodiosOrd episodiosOrd = new EpisodiosOrd();
 
 	public Episodios() {
 		H3 title = new H3("Resumen de episodios");
@@ -30,8 +29,10 @@ public class Episodios extends VerticalLayout {
 		Text filterText = new Text("Filtrar por:");
 		Span filterSpan = new Span(filterText);
 		filterSpan.getElement().getStyle().set("margin", "0");
+		
+		EpisodiosOrd episodiosOrd = new EpisodiosOrd();
 
-		EpisodiosTabbedAccordion episodiosTabbedAccordion = new EpisodiosTabbedAccordion();
+		EpisodiosTabbedAccordion episodiosTabbedAccordion = new EpisodiosTabbedAccordion(episodiosOrd);
 
 		// Agregar el contenedor de flexbox al layout principal
 		add(titleDiv, ordSpan, episodiosOrd, filterSpan, episodiosTabbedAccordion);

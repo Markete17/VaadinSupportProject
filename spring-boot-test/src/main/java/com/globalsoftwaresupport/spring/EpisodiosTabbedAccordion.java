@@ -1,5 +1,6 @@
 package com.globalsoftwaresupport.spring;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
@@ -14,22 +15,28 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.text.Normalizer;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class EpisodiosTabbedAccordion extends VerticalLayout {
 
     private static final long serialVersionUID = 1L;
-    private Map<String, List<AccordionPanel>> map = new HashMap<>();
-    private final String LIGHT_BLUE_COLOR = "#0073e6"; // Azul más claro
+    private final String LIGHT_BLUE_COLOR = "#0073e6";
+    private List<Episodio> episodios = new ArrayList<>();
+    private Tab selectedTab;
 
-    public EpisodiosTabbedAccordion() {
-        createLayout();
+    public EpisodiosTabbedAccordion(EpisodiosOrd episodiosOrd) {
+        createLayout(episodiosOrd);
     }
 
-    private void createLayout() {
+    private void createLayout(EpisodiosOrd episodiosOrd) {
+    	
+    	this.generarEpisodiosAleatorios(7);
+    	
         // Crear las pestañas
         Tabs tabs = new Tabs();
         Tab todosTab = createTab("Todos");
@@ -39,81 +46,24 @@ public class EpisodiosTabbedAccordion extends VerticalLayout {
         Tab quirofanoTab = createTab("Quirófano");
 
         // Agregar los indicadores (badges) a las pestañas
-        todosTab.add(createBadge(7));
-        urgenciasTab.add(createBadge(2));
-        consultasTab.add(createBadge(1));
-        hospTab.add(createBadge(1));
-        quirofanoTab.add(createBadge(3));
-
-        // Accordion Panel
-        AccordionPanel[] pacientes = {
-            new AccordionPanel("HOSPITAL SEGOVIA", createDropDownList()),
-            new AccordionPanel("HOSPITAL MAITE ROZAS", createDropDownList()),
-            new AccordionPanel("HOSPITAL SALAMANCA", createDropDownList()),
-            new AccordionPanel("HOSPITAL SEVERO OCHOA", createDropDownList()),
-            new AccordionPanel("HOSPITAL 12 OCTUBRE", createDropDownList()),
-            new AccordionPanel("HOSPITAL JOSEP TRUETA", createDropDownList()),
-            new AccordionPanel("HOSPITAL SANTA CATARINA", createDropDownList())
-        };
-
-        DetailsVariant[] variantsToApply = { DetailsVariant.SMALL };
-
-        for (AccordionPanel paciente : pacientes) {
-            paciente.addThemeVariants(variantsToApply);
-            paciente.addOpenedChangeListener(event -> {
-                if (event.isOpened()) {
-                    // Cambiar el fondo del título cuando se abre
-                    paciente.addThemeVariants(DetailsVariant.FILLED);
-                } else {
-                    // Restaurar el fondo original del título cuando se cierra
-                    paciente.removeThemeVariants(DetailsVariant.FILLED);
-                }
-            });
-        }
-
-        List<AccordionPanel> urgenciasList = new ArrayList<>();
-        urgenciasList.add(pacientes[0]);
-        urgenciasList.add(pacientes[1]);
-
-        List<AccordionPanel> consultasList = new ArrayList<>();
-        consultasList.add(pacientes[2]);
-
-        List<AccordionPanel> quirofanoList = new ArrayList<>();
-        quirofanoList.add(pacientes[3]);
-        quirofanoList.add(pacientes[4]);
-        quirofanoList.add(pacientes[5]);
-
-        List<AccordionPanel> hospList = new ArrayList<>();
-        hospList.add(pacientes[6]);
-
-        List<AccordionPanel> todosList = new ArrayList<>();
-        todosList.addAll(urgenciasList);
-        todosList.addAll(consultasList);
-        todosList.addAll(quirofanoList);
-        todosList.addAll(hospList);
-
-        this.map.put("urgencias", urgenciasList);
-        this.map.put("consultas", consultasList);
-        this.map.put("quirofano", quirofanoList);
-        this.map.put("hosp", hospList);
-        this.map.put("todos", todosList);
+        todosTab.add(createBadge(this.episodios.size()));
+        urgenciasTab.add(createBadge(contarEpisodiosDeTipo("urgencias")));
+        consultasTab.add(createBadge(contarEpisodiosDeTipo("consultas")));
+        hospTab.add(createBadge(contarEpisodiosDeTipo("hosp")));
+        quirofanoTab.add(createBadge(contarEpisodiosDeTipo("quirofano")));
 
         Div content = new Div();
 
-        // Mapa que relaciona las pestañas con los datos correspondientes
-        Map<Tab, List<AccordionPanel>> tabToAccordionDataMap = new HashMap<>();
-        tabToAccordionDataMap.put(todosTab, map.get("todos"));
-        tabToAccordionDataMap.put(urgenciasTab, map.get("urgencias"));
-        tabToAccordionDataMap.put(consultasTab, map.get("consultas"));
-        tabToAccordionDataMap.put(hospTab, map.get("hosp"));
-        tabToAccordionDataMap.put(quirofanoTab, map.get("quirofano"));
-
         // Agregar un SelectionListener para las pestañas
         tabs.addSelectedChangeListener(event -> {
-            Tab selectedTab = event.getSelectedTab();
-            content.removeAll();
-            Accordion accordion = createAccordionForTab(selectedTab, tabToAccordionDataMap);
-            content.add(accordion);
+            this.selectedTab = event.getSelectedTab();
+            actualizarAccordion(content, episodiosOrd);
+        });
+
+        episodiosOrd.addValueChangeListener(event -> {
+            if (episodiosOrd.getValue() != null) {
+                actualizarAccordion(content, episodiosOrd);
+            }
         });
 
         // Agregar las pestañas al layout
@@ -151,19 +101,33 @@ public class EpisodiosTabbedAccordion extends VerticalLayout {
         return badge;
     }
 
-    private VerticalLayout createDropDownList() {
+    private VerticalLayout createDropDownList(Episodio episodio) {
         VerticalLayout dropDownList = new VerticalLayout();
 
         Span descripcion = new Span();
         descripcion.getElement().setProperty("innerHTML", "<b>Descripcion: </b> Fractura fémur");
+        
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        String fechaAltaFormateada = dateFormat.format(episodio.getFechaAlta());
+        String fechaIngresoFormateada = dateFormat.format(episodio.getFechaIngreso());
+        
         Span fechaIngreso = new Span();
-        fechaIngreso.getElement().setProperty("innerHTML", "<b>Fecha Ingreso:</b> 22/02/2019");
+        fechaIngreso.getElement().setProperty("innerHTML", "<b>Fecha Ingreso: </b> "+fechaIngresoFormateada);
+        
         Span fechaAlta = new Span();
-        fechaAlta.getElement().setProperty("innerHTML", "<b>Fecha Alta:</b> 22/02/2023");
-
+        fechaAlta.getElement().setProperty("innerHTML", "<b>Fecha Alta: </b>"+fechaAltaFormateada);
+        
+        Span centro = new Span();
+        centro.getElement().setProperty("innerHTML", "<b>Centro: </b>"+episodio.getCentro());
+        
+        Span servicio = new Span();
+        servicio.getElement().setProperty("innerHTML", "<b>Servicio: </b>"+episodio.getServicio());
+        
         descripcion.getStyle().set("margin-left", "15px");
         fechaIngreso.getStyle().set("margin-left", "15px");
         fechaAlta.getStyle().set("margin-left", "15px");
+        servicio.getStyle().set("margin-left", "15px");
+        centro.getStyle().set("margin-left", "15px");
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.getElement().getStyle().set("margin-top", "10px");
@@ -177,7 +141,7 @@ public class EpisodiosTabbedAccordion extends VerticalLayout {
         buttonsLayout.add(botonOjo, botonPapel);
         buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        dropDownList.add(descripcion, fechaIngreso, fechaAlta);
+        dropDownList.add(descripcion, fechaIngreso, fechaAlta, centro, servicio);
         dropDownList.add(buttonsLayout);
         dropDownList.setSpacing(false);
         dropDownList.setPadding(false);
@@ -185,16 +149,167 @@ public class EpisodiosTabbedAccordion extends VerticalLayout {
         return dropDownList;
     }
 
-    private Accordion createAccordionForTab(Tab selectedTab, Map<Tab, List<AccordionPanel>> tabToAccordionDataMap) {
+    private Accordion createAccordionForTab(String tipo, List<Episodio> sortedEpisodios) {
         Accordion accordion = new Accordion();
-        List<AccordionPanel> panels = tabToAccordionDataMap.get(selectedTab);
-
-        if (panels != null) {
-            for (AccordionPanel panel : panels) {
-                accordion.add(panel);
-            }
+        for (Episodio episodio : sortedEpisodios) {
+        		if("todos".equals(tipo) || episodio.getTipo().equals(tipo)) {
+	                AccordionPanel panel = crearPanel(episodio);
+                	panel.addThemeVariants(DetailsVariant.SMALL);
+                	panel.addOpenedChangeListener(event -> {
+                        if (event.isOpened()) {
+                            // Cambiar el fondo del título cuando se abre
+                        	panel.addThemeVariants(DetailsVariant.FILLED);
+                        } else {
+                            // Restaurar el fondo original del título cuando se cierra
+                        	panel.removeThemeVariants(DetailsVariant.FILLED);
+                        }
+                    });
+	                accordion.add(panel);
+        		}
         }
-
         return accordion;
     }
+    
+    private void generarEpisodiosAleatorios(int cantidad) {
+   	 
+
+        // Listas de datos aleatorios
+        List<String> nombres = new ArrayList<>();
+        nombres.add("HOSPITAL SEGOVIA");
+        nombres.add("HOSPITAL MAITE ROZAS");
+        nombres.add("HOSPITAL SALAMANCA");
+        nombres.add("HOSPITAL SEVERO OCHOA");
+        nombres.add("HOSPITAL 12 OCTUBRE");
+        nombres.add("HOSPITAL JOSEP TRUETA");
+        nombres.add("HOSPITAL SANTA CATARINA");
+
+        List<String> descripciones = new ArrayList<>();
+        descripciones.add("Fractura Femur");
+        descripciones.add("Cirugía de corazón");
+        descripciones.add("Consulta de rutina");
+        descripciones.add("Cirugía de rodilla");
+        descripciones.add("Examen de rayos X");
+        descripciones.add("Tratamiento de pruebas");
+        descripciones.add("Prueba de laboratorio");
+
+        List<String> tipos = new ArrayList<>();
+        tipos.add("urgencias");
+        tipos.add("consultas");
+        tipos.add("quirofano");
+        tipos.add("hosp");
+
+        // Crear episodios aleatorios
+        Random rand = new Random();
+        for (int i = 0; i < cantidad; i++) {
+            String nombre = nombres.get(i);
+            String descripcion = descripciones.get(rand.nextInt(descripciones.size()));
+            Date fechaAlta = generarFechaAleatoria();
+            Date fechaIngreso = generarFechaAleatoria();
+            String centro = this.generarNombreAleatorio();
+            String servicio = this.generarNombreAleatorio();
+            String tipo = tipos.get(rand.nextInt(tipos.size()));
+            
+            Episodio episodio = new Episodio(nombre, descripcion, fechaAlta, fechaIngreso, centro, servicio, tipo);
+            this.episodios.add(episodio);
+        }
+    }
+    
+    private String generarNombreAleatorio() {
+        String letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        StringBuilder nombreAleatorio = new StringBuilder();
+
+        Random rand = new Random();
+
+        for (int i = 0; i < 4; i++) {
+            int index = rand.nextInt(letras.length());
+            char letra = letras.charAt(index);
+            nombreAleatorio.append(letra);
+        }
+
+        return nombreAleatorio.toString();
+    }
+    
+    private static Date generarFechaAleatoria() {
+        Random rand = new Random();
+        long now = System.currentTimeMillis();
+        long randomTime = now - rand.nextLong() % (365 * 24 * 60 * 60 * 1000); // Fecha aleatoria en el último año
+        return new Date(randomTime);
+    }
+    
+    private AccordionPanel crearPanel(Episodio episodio) {
+    	return new AccordionPanel(episodio.getNombre(), createDropDownList(episodio));
+    }
+    
+    private int contarEpisodiosDeTipo(String tipo) {
+        int contador = 0;
+        
+        for (Episodio episodio : episodios) {
+            if (episodio.getTipo().equals(tipo)) {
+                contador++;
+            }
+        }
+        
+        return contador;
+    }
+    
+    private List<Episodio> ordenarEpisodios(String atributoOrdenamiento) {
+        
+    	List<Episodio> sortedEpisodios = new ArrayList<>(episodios);
+    	if(atributoOrdenamiento!=null) {
+	    	
+	        Comparator<Episodio> comparator = null;
+	
+	        switch (atributoOrdenamiento) {
+	            case "fecha":
+	                comparator = Comparator.comparing(Episodio::getFechaIngreso);
+	                break;
+	            case "centro":
+	            	comparator = Comparator.comparing(episodio -> episodio.getCentro().toLowerCase(), String.CASE_INSENSITIVE_ORDER);
+	                break;
+	            case "servicio":
+	            	comparator = Comparator.comparing(episodio -> episodio.getServicio().toLowerCase(), String.CASE_INSENSITIVE_ORDER);
+	                break;
+	        }
+	
+	        if (comparator != null) {
+	            sortedEpisodios.sort(comparator);
+	        }
+    	}
+
+        return sortedEpisodios;
+    }
+    
+    private String quitarAcentosYCaracteresEspeciales(String input) {
+        // Normalizar la cadena utilizando la forma NFD (Descomposición canónica)
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        
+        // Usar una expresión regular para eliminar los caracteres no deseados
+        Pattern pattern = Pattern.compile("[^\\p{ASCII}]");
+        return pattern.matcher(normalized).replaceAll("");
+    }
+    
+	private void actualizarAccordion(Div content, EpisodiosOrd episodiosOrd) {
+        content.removeAll();
+        String tipo = this.selectedTab.getLabel().toLowerCase();
+        tipo = quitarAcentosYCaracteresEspeciales(tipo);
+        Accordion accordion = new Accordion();
+
+        List<Episodio> sortedEpisodios = ordenarEpisodios(episodiosOrd.getValue());
+        
+
+        accordion = createAccordionForTab(tipo, sortedEpisodios);
+
+        // El Accordion está vacío
+        if (accordion.getChildren().findFirst().isEmpty()) {
+        	Div centeredTextDiv = new Div(new Text("No hay episodios de " + tipo + " asociados."));
+        	centeredTextDiv.getStyle().set("display", "flex");
+        	centeredTextDiv.getStyle().set("margin-top", "15px");
+        	centeredTextDiv.getStyle().set("justify-content", "center");
+        	centeredTextDiv.getStyle().set("align-items", "center");
+            content.add(centeredTextDiv);
+        } else {
+        	content.add(accordion);
+        }
+    }
+    
 }

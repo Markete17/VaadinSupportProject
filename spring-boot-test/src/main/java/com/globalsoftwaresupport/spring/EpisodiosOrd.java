@@ -25,7 +25,7 @@ public class EpisodiosOrd extends HorizontalLayout {
     private final Button centroButton = createStyledButton("Centro");
 
     @Getter
-    private Boolean value;
+    private String value;
 
     public EpisodiosOrd() {
         super();
@@ -55,24 +55,24 @@ public class EpisodiosOrd extends HorizontalLayout {
             clearStyles();
             fechaButton.getStyle().set("background-color", BACKGROUND_COLOR);
             fechaButton.getStyle().set("color", LIGHT_TEXT_COLOR); // Texto claro cuando se selecciona
-            value = null;
-            //fireEvent(new ValueChangeEvent(this, FilterForm.empty(EpisodiosRestDtoDataProvider.FILTER_MENORES)));
+            value = "fecha";
+            fireEvent(new ValueChangeEvent(this, value));
         });
 
         servicioButton.addClickListener(buttonClickEvent -> {
             clearStyles();
             servicioButton.getStyle().set("background-color", BACKGROUND_COLOR);
             servicioButton.getStyle().set("color", LIGHT_TEXT_COLOR); // Texto claro cuando se selecciona
-            value = Boolean.FALSE;
-            //fireEvent(new ValueChangeEvent(this, FilterForm.of(EpisodiosRestDtoDataProvider.FILTER_MENORES, value)));
+            value = "servicio";
+            fireEvent(new ValueChangeEvent(this, value));
         });
 
         centroButton.addClickListener(buttonClickEvent -> {
             clearStyles();
             centroButton.getStyle().set("background-color", BACKGROUND_COLOR);
             centroButton.getStyle().set("color", LIGHT_TEXT_COLOR); // Texto claro cuando se selecciona
-            value = Boolean.TRUE;
-            //fireEvent(new ValueChangeEvent(this, FilterForm.of(EpisodiosRestDtoDataProvider.FILTER_MENORES, value)));
+            value = "centro";
+            fireEvent(new ValueChangeEvent(this, value));
         });
 
         this.add(fechaButton, servicioButton, centroButton);
@@ -94,12 +94,12 @@ public class EpisodiosOrd extends HorizontalLayout {
     @Getter
     public static class ValueChangeEvent extends ComponentEvent<EpisodiosOrd> {
 		private static final long serialVersionUID = 1L;
-		private final FilterForm filterForm;
+		private final String value;
 
-        public ValueChangeEvent(@NonNull final EpisodiosOrd source, @NonNull final FilterForm filterForm) {
-            super(source, false);
-            Objects.requireNonNull(filterForm, "filterForm must not be null");
-            this.filterForm = filterForm;
-        }
+	    public ValueChangeEvent(@NonNull final EpisodiosOrd source, @NonNull final String value) {
+	        super(source, false);
+	        Objects.requireNonNull(value, "value must not be null");
+	        this.value = value;
+	    }
     }
 }
