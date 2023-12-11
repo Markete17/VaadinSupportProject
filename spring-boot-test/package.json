@@ -8,6 +8,7 @@
     "@polymer/iron-meta": "3.0.1",
     "@polymer/iron-resizable-behavior": "3.0.1",
     "@polymer/polymer": "3.5.1",
+    "@vaadin-component-factory/vcf-autosuggest": "1.1.6",
     "@vaadin/accordion": "23.3.25",
     "@vaadin/app-layout": "23.3.25",
     "@vaadin/avatar": "23.3.25",
@@ -75,6 +76,7 @@
     "@vaadin/vaadin-details": "23.3.25",
     "@vaadin/vaadin-development-mode-detector": "2.0.6",
     "@vaadin/vaadin-dialog": "23.3.25",
+    "@vaadin/vaadin-element-mixin": "21.0.5",
     "@vaadin/vaadin-form-layout": "23.3.25",
     "@vaadin/vaadin-grid": "23.3.25",
     "@vaadin/vaadin-icon": "23.3.25",
@@ -132,6 +134,7 @@
       "@polymer/iron-meta": "3.0.1",
       "@polymer/iron-resizable-behavior": "3.0.1",
       "@polymer/polymer": "3.5.1",
+      "@vaadin-component-factory/vcf-autosuggest": "1.1.6",
       "@vaadin/accordion": "23.3.25",
       "@vaadin/app-layout": "23.3.25",
       "@vaadin/avatar": "23.3.25",
@@ -199,6 +202,7 @@
       "@vaadin/vaadin-details": "23.3.25",
       "@vaadin/vaadin-development-mode-detector": "2.0.6",
       "@vaadin/vaadin-dialog": "23.3.25",
+      "@vaadin/vaadin-element-mixin": "21.0.5",
       "@vaadin/vaadin-form-layout": "23.3.25",
       "@vaadin/vaadin-grid": "23.3.25",
       "@vaadin/vaadin-icon": "23.3.25",
@@ -248,7 +252,7 @@
       "workbox-core": "6.5.4",
       "workbox-precaching": "6.5.4"
     },
-    "hash": "61242c049e68e80d42cae7d6108c895664ac0dd71555347374779539f122576f"
+    "hash": "9dfb10644329117231d37d61075a31b8a8b363a324a33124c108b969e9c114c6"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -355,6 +359,8 @@
     "construct-style-sheets-polyfill": "$construct-style-sheets-polyfill",
     "lit": "$lit",
     "@polymer/polymer": "$@polymer/polymer",
-    "date-fns": "$date-fns"
+    "date-fns": "$date-fns",
+    "@vaadin/vaadin-element-mixin": "$@vaadin/vaadin-element-mixin",
+    "@vaadin-component-factory/vcf-autosuggest": "$@vaadin-component-factory/vcf-autosuggest"
   }
 }

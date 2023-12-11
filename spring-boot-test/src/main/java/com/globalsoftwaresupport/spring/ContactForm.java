@@ -34,6 +34,8 @@ public class ContactForm extends VerticalLayout {
 		initComponents();
 		initBinder();
 		addComponents();
+		setWidth("450px");
+		setHeight("300px");
 	}
 	
 	public void setPerson(Person person) {
