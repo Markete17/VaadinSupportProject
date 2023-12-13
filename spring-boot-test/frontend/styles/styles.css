@@ -1,9 +1,0 @@
-.custom-text-field::part(input-field) {
-  font-size: 13px;
-  background: white;
-}
-
-vaadin-dialog-overlay[theme="custom-dialog"]::part(content){
-	padding:0;
-	width: 500px;
-}

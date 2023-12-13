@@ -2,14 +2,15 @@ package com.globalsoftwaresupport.spring;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -20,9 +21,11 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.listbox.MultiSelectListBox;
+import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -32,15 +35,25 @@ import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 
 @Route("enlaces")
 @PageTitle("Enlaces")
-@CssImport("styles/styles.css")
+@CssImport("styles/enlaces-styles.css")
 public class MenuBarView extends HorizontalLayout {
 
     private static final long serialVersionUID = 1L;
     
-    private List<EnlaceDTO> enlaces;
+    private transient List<EnlaceDTO> enlaces;
+    
+    private Div content = new Div();
+    
+    private Dialog dialog = new Dialog();
+    
+    private TextField searchField = new TextField();
+    
+    private Map<String, List<EnlaceDTO>> enlacesMap = new HashMap<>();
+   
 
     public MenuBarView() {
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -60,89 +73,41 @@ public class MenuBarView extends HorizontalLayout {
 
         add(menuBarDiv);
         
-        Dialog dialog = new Dialog();
         dialog.addThemeName("custom-dialog");
         searchButton.addClickListener(event -> {
             dialog.open();
         });
         
-        VerticalLayout dialogLayout = createDialogLayout(dialog);
+        VerticalLayout dialogLayout = createDialogLayout();
         dialog.add(dialogLayout);
     }
     
-    private static VerticalLayout createDialogLayout(Dialog dialog) {
-//      List<Person> items = new ArrayList<>();
-//      items.add(new Person("Enlace1", 23));
-//      items.add(new Person("Enlace2", 23233));
-//        ComboBox<Person> comboBox = new ComboBox<>();
-//        comboBox.setPlaceholder("Buscar enlace");
-//        comboBox.setWidth("500px");
-//        comboBox.getStyle().set("--vaadin-combo-box-overlay-width", "500px");
-//        comboBox.setItems(items);
-//        comboBox.setItemLabelGenerator(
-//                Person::getName);
-//        comboBox.setRenderer(createRenderer());
+    private VerticalLayout createDialogLayout() {
 
-        // INPUT
-        TextField textField = new TextField();
-        textField.getElement().getStyle().set("padding", "0px");
-        textField.setClassName("custom-text-field");
-        // Agrega un icono de búsqueda a la izquierda del TextField
-        Icon searchIcon = new Icon(VaadinIcon.SEARCH);
-        searchIcon.getStyle().set("cursor", "pointer");
-        textField.setPrefixComponent(searchIcon);
+        configureSearchField();
+        updateContent();
 
-        // Establece el marcador de posición
-        textField.setPlaceholder("Buscar enlace");
-        
-        
-        // LIST BOX
-        List<Person> items = new ArrayList<>();
-        items.add(new Person("Enlace1", 23));
-        items.add(new Person("Enlace2", 23233));
-        MultiSelectListBox<Person> listBox = new MultiSelectListBox<>();
-        listBox.setItems(items);
-        listBox.setRenderer(new ComponentRenderer<>(person -> {
-            HorizontalLayout row = new HorizontalLayout();
-            row.setAlignItems(FlexComponent.Alignment.CENTER);
-
-            Avatar avatar = new Avatar();
-            avatar.setName(person.getName());
-
-            Span name = new Span(person.getName());
-            Span profession = new Span(person.getAge().toString());
-            profession.getStyle()
-                    .set("color", "var(--lumo-secondary-text-color)")
-                    .set("font-size", "var(--lumo-font-size-s)");
-
-            VerticalLayout column = new VerticalLayout(name, profession);
-            column.setPadding(false);
-            column.setSpacing(false);
-
-            row.add(avatar, column);
-            row.getStyle().set("line-height", "var(--lumo-line-height-m)");
-            return row;
-        }));
-        
-        listBox.addSelectionListener(event -> {
-            Set<Person> selectedItems = event.getAllSelectedItems();
-            if (!selectedItems.isEmpty()) {
-                Person selectedPerson = selectedItems.iterator().next();
-                
-                // Abre una nueva ventana del navegador con Google.com
-                UI.getCurrent().navigate("angular");
-                listBox.deselectAll();
-                dialog.close();
-            }
-        });
- 
-
-        VerticalLayout dialogLayout = new VerticalLayout(textField, listBox);
+        VerticalLayout dialogLayout = new VerticalLayout(searchField, content);
         dialogLayout.setPadding(false);
         dialogLayout.setSpacing(false);
         dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
         
         return dialogLayout;
+    }
+    
+    private void configureSearchField() {
+        searchField.getElement().getStyle().set("padding", "0px");
+        searchField.setClassName("custom-text-field");
+
+        Icon searchIcon = new Icon(VaadinIcon.SEARCH);
+        searchIcon.getStyle().set("cursor", "pointer");
+        searchField.setPrefixComponent(searchIcon);
+
+        searchField.setPlaceholder("Buscar enlace");
+        
+        searchField.addValueChangeListener(event -> {
+            updateContent();
+        });
     }
     
     private MenuBar createMenuBar() {
@@ -155,23 +120,101 @@ public class MenuBarView extends HorizontalLayout {
             MenuItem menuItem = menuBar.addItem(enlace.getNombre());
             menuItem.getElement().getStyle().set("cursor", "pointer");
             menuItem.getElement().getStyle().set("font-size", "13px");
-            construirSubMenu(menuItem, enlace);
+            
+            StringBuilder strBuilder = new StringBuilder();
+            strBuilder.append(enlace.getNombre());
+            
+            buildSubMenu(menuItem, enlace, strBuilder);
         }
 
         return menuBar;
     }
 
-    private void construirSubMenu(MenuItem menuItem, EnlaceDTO enlace) {
-        List<EnlaceDTO> subenlaces = obtenerEnlacesHijos(enlace);
-        if (subenlaces!=null && !subenlaces.isEmpty()) {
-            SubMenu subMenu = menuItem.getSubMenu();
-            for (EnlaceDTO subenlace : subenlaces) {
-                MenuItem subMenuItem = subMenu.addItem(subenlace.getNombre());
-                subMenuItem.getElement().getStyle().set("cursor", "pointer");
-                subMenuItem.getElement().getStyle().set("font-size", "13px");
-                construirSubMenu(subMenuItem, subenlace); // Llamada recursiva para subenlaces
+    private void buildSubMenu(MenuItem menuItem, EnlaceDTO link, StringBuilder strBuilder) {
+        List<EnlaceDTO> subLinks = getChildLinks(link);
+        
+        if (subLinks != null && !subLinks.isEmpty()) {
+            buildSubMenuItems(menuItem.getSubMenu(), subLinks, strBuilder);
+        } else {
+            addClickListener(menuItem, link);
+
+            String part = " / " + link.getNombre();
+            int index = strBuilder.indexOf(part);
+            if (index != -1) {
+                strBuilder.delete(index, index + part.length());
             }
+            
+            String key = strBuilder.toString();
+            this.enlacesMap.merge(key, new ArrayList<>(List.of(link)), (existingList, newList) -> {
+                existingList.addAll(newList);
+                return existingList;
+            });
+
         }
+    }
+
+    private void buildSubMenuItems(SubMenu subMenu, List<EnlaceDTO> subLinks, StringBuilder strBuilder) {
+        for (EnlaceDTO subLink : subLinks) {
+            StringBuilder subStringBuilder = new StringBuilder(strBuilder.toString()); // Crear una copia del StringBuilder
+            MenuItem subMenuItem = subMenu.addItem(subLink.getNombre());
+            subStringBuilder.append(" / ");
+            subStringBuilder.append(subLink.getNombre());
+            subMenuItem.getElement().getStyle().set("cursor", "pointer");
+            subMenuItem.getElement().getStyle().set("font-size", "13px");
+            buildSubMenu(subMenuItem, subLink, subStringBuilder); // Llamada recursiva
+        }
+    }
+
+    private void addClickListener(MenuItem menuItem, EnlaceDTO enlace) {
+        menuItem.addClickListener(event -> {
+            String url = enlace.getUrl();
+
+            if (url != null) {
+                openPopupWindow(url);
+            } else {
+                showLinkNotAvailableError();
+            }
+        });
+    }
+
+    private void openPopupWindow(String url) {
+        String script = "window.open('" + url + "', '_blank', 'height=500,width=800,resizable=yes,scrollbars=yes')";
+        VaadinSession.getCurrent().getUIs().forEach(ui -> ui.getPage().executeJs(script));
+    }
+
+    private void showLinkNotAvailableError() {
+        Div text = new Div(new Text("El enlace no está disponible"));
+        text.addClassName("small-notification-div");
+        
+        Notification notification = new Notification();
+        notification.setDuration(4000);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        notification.setPosition(Notification.Position.TOP_END);
+        
+        Icon icon = VaadinIcon.WARNING.create();
+        icon.addClassName("icon-style");
+
+        Button closeButton = new Button(new Icon("lumo", "cross"));
+        closeButton.getElement().getStyle().set("padding-right", "0");
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        closeButton.getElement().getStyle().set("cursor", "pointer");
+        closeButton.getElement().setAttribute("aria-label", "Close");
+        closeButton.addClickListener(e -> notification.close());
+
+        HorizontalLayout layout = new HorizontalLayout(icon, text, closeButton);
+        layout.setSpacing(false);
+        layout.setPadding(false);
+        layout.setAlignItems(Alignment.CENTER);
+
+        notification.add(layout);
+        notification.open();
+    }
+    
+    private Notification getNotificationInstance() {
+        // Puedes personalizar la creación de la instancia de Notification según tus necesidades
+        Notification notification = new Notification("Mensaje de notificación");
+        notification.setPosition(Notification.Position.MIDDLE);
+        return notification;
     }
     
     private List<EnlaceDTO> getEnlaces(String url) {
@@ -182,7 +225,7 @@ public class MenuBarView extends HorizontalLayout {
         return Arrays.asList(responseEntity.getBody());
     }
 
-    private List<EnlaceDTO> obtenerEnlacesHijos(EnlaceDTO enlaceDTO) {
+    private List<EnlaceDTO> getChildLinks(EnlaceDTO enlaceDTO) {
         String url = "http://localhost:8090/api/enlaces/padre/" + enlaceDTO.getId();
         return getEnlaces(url);
     }
@@ -203,5 +246,53 @@ public class MenuBarView extends HorizontalLayout {
         return LitRenderer.<Person> of(tpl.toString())
                 .withProperty("name", Person::getName)
                 .withProperty("age", Person::getAge);
+    }
+    
+    private static HorizontalLayout createRowLayout(EnlaceDTO enlace) {
+        HorizontalLayout row = new HorizontalLayout();
+        row.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Span name = createSpan(enlace.getNombre(), "30%");
+        Span profession = createSpan(enlace.getDescripcion(), "70%");
+
+        row.add(name, profession);
+        row.getStyle().set("line-height", "var(--lumo-line-height-m)");
+
+        return row;
+    }
+
+    private static Span createSpan(String text, String width) {
+        Span span = new Span(text);
+        span.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        span.setWidth(width);
+        return span;
+    }
+    
+    private void updateContent() {
+        
+        String searchValue = searchField.getValue();
+        
+        this.enlacesMap.keySet().forEach(header -> {
+            List<EnlaceDTO> list = this.enlacesMap.get(header);
+
+                ListBox<EnlaceDTO> listBox = new ListBox<>();
+                listBox.setItems(list);
+
+                listBox.setRenderer(new ComponentRenderer<>(MenuBarView::createRowLayout));
+
+                listBox.addValueChangeListener(event -> {
+
+                   EnlaceDTO selected = event.getValue();
+                   
+                   this.openPopupWindow(selected.getUrl());
+                });
+
+                Span span = new Span(header);
+                span.addClassName("custom-span-header");
+
+                content.add(span, listBox);
+        });
+        
+
     }
 }
