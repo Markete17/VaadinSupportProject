@@ -21,7 +21,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.listbox.ListBox;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
@@ -275,16 +275,25 @@ public class MenuBarView extends HorizontalLayout {
         this.enlacesMap.keySet().forEach(header -> {
             List<EnlaceDTO> list = this.enlacesMap.get(header);
 
-                ListBox<EnlaceDTO> listBox = new ListBox<>();
+                MultiSelectListBox<EnlaceDTO> listBox = new MultiSelectListBox<>();
                 listBox.setItems(list);
 
                 listBox.setRenderer(new ComponentRenderer<>(MenuBarView::createRowLayout));
 
-                listBox.addValueChangeListener(event -> {
+                listBox.addSelectionListener(event -> {
 
-                   EnlaceDTO selected = event.getValue();
+                   Set<EnlaceDTO> selectedSet = event.getValue();
                    
-                   this.openPopupWindow(selected.getUrl());
+                   if(selectedSet!=null && !selectedSet.isEmpty()) {
+                       EnlaceDTO selected = selectedSet.iterator().next();
+                       if(selected.getUrl()!=null && selected.getUrl()!="") {
+                           this.openPopupWindow(selected.getUrl());
+                       } else {
+                           this.showLinkNotAvailableError();
+                       }
+                   }
+                   listBox.deselectAll();
+                   
                 });
 
                 Span span = new Span(header);
