@@ -1,6 +1,33 @@
+.menu-bar-view {
+    display: flex;
+    justify-content: center;
+}
+
+vaadin-menu-bar[part='container'] {
+  		  position: relative;
+          display: flex;
+          width: 100%;
+          flex-wrap: nowrap;
+          overflow: hidden;
+          justify-content: center;
+}
+
 .custom-text-field::part(input-field) {
   font-size: var(--lumo-font-size-s);
   background: white;
+}
+
+.pointer-icon{
+	cursor: pointer;
+}
+
+vaadin-menu-bar::part(container){
+	  	  position: relative;
+          display: flex;
+          width: 100%;
+          flex-wrap: nowrap;
+          overflow: hidden;
+          justify-content: center;
 }
 
 vaadin-dialog-overlay[theme="custom-dialog"]::part(content){
@@ -8,6 +35,9 @@ vaadin-dialog-overlay[theme="custom-dialog"]::part(content){
 	width: 500px;
 }
 
+vaadin-menu-bar-button{
+	color: var(--lumo-primary-text-color);
+}
 
 .custom-span-header {
   color: var(--lumo-secondary-text-color);
@@ -39,3 +69,4 @@ vaadin-item{
 vaadin-item::part(checkmark) {
     display: none;
 }
+

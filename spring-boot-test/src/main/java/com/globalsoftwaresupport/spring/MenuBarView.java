@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -27,12 +28,11 @@ import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.LitRenderer;
-import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
@@ -40,7 +40,7 @@ import com.vaadin.flow.server.VaadinSession;
 @Route("enlaces")
 @PageTitle("Enlaces")
 @CssImport("styles/enlaces-styles.css")
-public class MenuBarView extends HorizontalLayout {
+public class MenuBarView extends Div {
 
     private static final long serialVersionUID = 1L;
     
@@ -52,34 +52,17 @@ public class MenuBarView extends HorizontalLayout {
     
     private TextField searchField = new TextField();
     
-    private Map<String, List<EnlaceDTO>> enlacesMap = new HashMap<>();
+    private transient Map<String, List<EnlaceDTO>> enlacesMap = new HashMap<>();
    
 
     public MenuBarView() {
-        setJustifyContentMode(JustifyContentMode.CENTER);
+
         this.enlaces = this.getAllEnlaces();
-        MenuBar menuBar = this.createMenuBar();
-
-        Button searchButton = new Button("Buscar", VaadinIcon.SEARCH.create());
-        searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        searchButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-
-        searchButton.getElement().getStyle().set("cursor", "pointer");
-        searchButton.getElement().getStyle().set("font-size", "13px");
-        searchButton.getElement().getStyle().set("border-radius", "5px");
         
-        Div menuBarDiv = new Div(menuBar, searchButton);
-        menuBarDiv.getStyle().set("display", "flex").set("align-items", "center").set("gap", "10px");
+        this.createMenuBar();
+        
+        this.configureDialog();
 
-        add(menuBarDiv);
-        
-        dialog.addThemeName("custom-dialog");
-        searchButton.addClickListener(event -> {
-            dialog.open();
-        });
-        
-        VerticalLayout dialogLayout = createDialogLayout();
-        dialog.add(dialogLayout);
     }
     
     private VerticalLayout createDialogLayout() {
@@ -100,24 +83,26 @@ public class MenuBarView extends HorizontalLayout {
         searchField.setClassName("custom-text-field");
 
         Icon searchIcon = new Icon(VaadinIcon.SEARCH);
-        searchIcon.getStyle().set("cursor", "pointer");
+        searchIcon.addClassName("pointer-icon");
         searchField.setPrefixComponent(searchIcon);
 
         searchField.setPlaceholder("Buscar enlace");
         
-        searchField.addValueChangeListener(event -> {
-            updateContent();
-        });
+        searchField.addValueChangeListener(event -> updateContent());
+
     }
     
-    private MenuBar createMenuBar() {
+    private void createMenuBar() {
         MenuBar menuBar = new MenuBar();
         menuBar.setOpenOnHover(true);
         menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_SMALL);
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_LARGE);
 
         for (EnlaceDTO enlace : this.enlaces) {
             MenuItem menuItem = menuBar.addItem(enlace.getNombre());
+            
+            menuItem.getElement().getStyle().set("color", "var(--lumo-primary-text-color)");
+            menuItem.getElement().getStyle().set("font-weight", "500");
             menuItem.getElement().getStyle().set("cursor", "pointer");
             menuItem.getElement().getStyle().set("font-size", "13px");
             
@@ -126,10 +111,21 @@ public class MenuBarView extends HorizontalLayout {
             
             buildSubMenu(menuItem, enlace, strBuilder);
         }
+        
+        Button searchButton = createAndConfigureSearchButton();
+        
+        MenuItem searchButtonItem = menuBar.addItem(searchButton);
+        searchButtonItem.getElement().getStyle().set("background-color", "transparent !important");
 
-        return menuBar;
+        add(menuBar);
     }
-
+    
+    private void configureDialog() {
+        dialog.addThemeName("custom-dialog");
+        VerticalLayout dialogLayout = createDialogLayout();
+        dialog.add(dialogLayout);
+    }
+    
     private void buildSubMenu(MenuItem menuItem, EnlaceDTO link, StringBuilder strBuilder) {
         List<EnlaceDTO> subLinks = getChildLinks(link);
         
@@ -185,12 +181,12 @@ public class MenuBarView extends HorizontalLayout {
     private void showLinkNotAvailableError() {
         Div text = new Div(new Text("El enlace no está disponible"));
         text.addClassName("small-notification-div");
-        
+
         Notification notification = new Notification();
         notification.setDuration(4000);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         notification.setPosition(Notification.Position.TOP_END);
-        
+
         Icon icon = VaadinIcon.WARNING.create();
         icon.addClassName("icon-style");
 
@@ -204,11 +200,14 @@ public class MenuBarView extends HorizontalLayout {
         HorizontalLayout layout = new HorizontalLayout(icon, text, closeButton);
         layout.setSpacing(false);
         layout.setPadding(false);
+        
+        // Alinea los elementos verticalmente al centro
         layout.setAlignItems(Alignment.CENTER);
 
         notification.add(layout);
         notification.open();
     }
+
     
     private Notification getNotificationInstance() {
         // Puedes personalizar la creación de la instancia de Notification según tus necesidades
@@ -233,19 +232,6 @@ public class MenuBarView extends HorizontalLayout {
     private List<EnlaceDTO> getAllEnlaces() {
         String url = "http://localhost:8090/api/enlaces";
         return getEnlaces(url);
-    }
-    
-    private static Renderer<Person> createRenderer() {
-        StringBuilder tpl = new StringBuilder();
-        tpl.append("<a href='www.google.com'>");
-        tpl.append("    ${item.name} - Anos: ${item.age}");
-        tpl.append("  </a>");
-        tpl.append("  </div>");
-        tpl.append("</div>");
-
-        return LitRenderer.<Person> of(tpl.toString())
-                .withProperty("name", Person::getName)
-                .withProperty("age", Person::getAge);
     }
     
     private static HorizontalLayout createRowLayout(EnlaceDTO enlace) {
@@ -301,7 +287,20 @@ public class MenuBarView extends HorizontalLayout {
 
                 content.add(span, listBox);
         });
-        
+    }
+    
+    private Button createAndConfigureSearchButton() {
+        Button searchButton = new Button("Buscar", VaadinIcon.SEARCH.create());
+        searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        searchButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        searchButton.getElement().getStyle().set("cursor", "pointer");
+        searchButton.getElement().getStyle().set("font-size", "13px");
+        searchButton.getElement().getStyle().set("border-radius", "5px");
 
+        searchButton.addClassName("search-button");
+
+        searchButton.addClickListener(event -> dialog.open());
+
+        return searchButton;
     }
 }
